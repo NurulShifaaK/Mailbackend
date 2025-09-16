@@ -4,7 +4,11 @@ const nodemailer=require("nodemailer")
 const mongoose = require("mongoose")
 const app=express()
 app.use(express.json())
-app.use(cors())
+app.use(cors({
+    origin: "https://stuffboxfrontend.vercel.app" 
+}));
+
+
 
 
 mongoose.connect("mongodb+srv://shifaxoxo24_db_user:6QIadZxLOMv74MAU@cluster0.qgggsmz.mongodb.net/passkey?retryWrites=true&w=majority&appName=Cluster0").then(function(){
