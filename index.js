@@ -91,12 +91,27 @@ const mongoose = require("mongoose");
 const app = express();
 app.use(express.json());
 
+const allowedOrigins = [
+  "https://signin-frontend-virid.vercel.app",
+  "https://stuffboxfrontend.vercel.app",
+  "http://localhost:3000"
+];
+
 // ✅ Allow both local + deployed frontend
 app.use(cors({
-  origin: "https://stuffboxfrontend.vercel.app/", // your Vercel frontend URL
-  methods: ["GET","POST"],
-  credentials: true
+  origin: function(origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS not allowed for this origin"));
+    }
+  },
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
+// Handle preflight requests
+app.options("*", cors());
 // ✅ MongoDB connection
 mongoose
   .connect(
