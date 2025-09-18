@@ -17,6 +17,10 @@ mongoose.connect("mongodb+srv://shifaxoxo24_db_user:6QIadZxLOMv74MAU@cluster0.qg
     console.log("db failed")
 })
 
+app.get("/", (req, res) => {
+  res.send("Backend is running ✅");
+});
+
 const credential=mongoose.model("credential",{},"bulkmail")
 
 
