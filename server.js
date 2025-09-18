@@ -96,7 +96,19 @@ app.use(express.json());
 
 // ✅ Allow your frontend
 
- app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "https://stuffboxfrontend.vercel.app", // your deployed frontend
+      "http://localhost:3000",               // for local testing
+    ],
+    methods: ["GET", "POST"],
+    credentials: true,
+  })
+);
+
+// ✅ Test CORS quickly
+app.options("*", cors());
 
 // ✅ Connect MongoDB
 mongoose
