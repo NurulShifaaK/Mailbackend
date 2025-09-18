@@ -95,13 +95,8 @@ const app = express();
 app.use(express.json());
 
 // ✅ Allow your frontend
-app.use(
-  cors({
-    origin: "https://stuffboxfrontend.vercel.app", 
-    methods: ["GET", "POST"],
-    credentials: true,
-  })
-);
+
+ app.use(cors());
 
 // ✅ Connect MongoDB
 mongoose
