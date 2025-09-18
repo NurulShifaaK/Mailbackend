@@ -92,12 +92,11 @@ const app = express();
 app.use(express.json());
 
 // ✅ Allow both local + deployed frontend
-app.use(
-  cors({
-    origin: ["http://localhost:3000", "https://stuffboxfrontend.vercel.app"],
-  })
-);
-
+app.use(cors({
+  origin: "https://stuffboxfrontend.vercel.app/", // your Vercel frontend URL
+  methods: ["GET","POST"],
+  credentials: true
+}));
 // ✅ MongoDB connection
 mongoose
   .connect(
