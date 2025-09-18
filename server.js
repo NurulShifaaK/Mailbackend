@@ -128,6 +128,8 @@ const credential = mongoose.model("credential", {}, "bulkmail");
 
 // ✅ Send Email API
 app.post("/sendemail", async (req, res) => {
+
+    res.send("running")
   try {
     const { msg, emailList } = req.body;
 
