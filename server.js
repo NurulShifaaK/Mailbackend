@@ -97,7 +97,7 @@ app.use(express.json());
 // ✅ Allow your frontend
 app.use(
   cors({
-    origin: "https://stuffboxfrontend.vercel.app", // your frontend domain
+    origin: "https://stuffboxfrontend.vercel.app", 
     methods: ["GET", "POST"],
     credentials: true,
   })
