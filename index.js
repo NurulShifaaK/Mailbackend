@@ -91,7 +91,7 @@ const mongoose = require("mongoose");
 const app = express();
 app.use(express.json());
 
-// Allow both local and deployed frontend
+// ✅ Allow both local + deployed frontend
 app.use(
   cors({
     origin: ["http://localhost:3000", "https://stuffboxfrontend.vercel.app"],
@@ -103,52 +103,59 @@ mongoose
   .connect(
     "mongodb+srv://shifaxoxo24_db_user:6QIadZxLOMv74MAU@cluster0.qgggsmz.mongodb.net/passkey?retryWrites=true&w=majority&appName=Cluster0"
   )
-  .then(function () {
-    console.log("✅ Database connected");
-  })
-  .catch(function (err) {
-    console.error("❌ Database connection failed:", err.message);
-  });
+  .then(() => console.log("✅ Database connected"))
+  .catch((err) => console.error("❌ Database connection failed:", err.message));
 
-// Default route
+// ✅ Test routes
 app.get("/", (req, res) => {
   res.send("Backend is running ✅");
 });
 
-// Test route
 app.get("/ping", (req, res) => {
   res.json({ message: "pong 🏓" });
 });
 
-// MongoDB model (using "bulkmail" collection)
+// ✅ MongoDB model (collection: bulkmail)
 const credential = mongoose.model("credential", {}, "bulkmail");
 
-// Send email route
+// ✅ Send email route
 app.post("/sendemail", async (req, res) => {
   try {
     const { msg, emailList } = req.body;
+
     if (!msg || !emailList?.length) {
       return res.status(400).json({ success: false, error: "Invalid input" });
     }
 
+    // Fetch Gmail credentials from DB
     const creds = await credential.find();
     if (!creds.length) {
-      return res.status(500).json({ success: false, error: "No credentials found" });
+      return res
+        .status(500)
+        .json({ success: false, error: "No credentials found in DB" });
     }
 
+    const gmailUser = creds[0].toJSON().user;
+    const gmailPass = creds[0].toJSON().pass;
+
+    console.log("📧 Using Gmail account:", gmailUser);
+
+    // Create transporter
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: creds[0].toJSON().user,
-        pass: creds[0].toJSON().pass,
+        user: gmailUser,
+        pass: gmailPass, // ⚠️ Must be an App Password (not normal Gmail password)
       },
     });
 
+    // Send emails one by one
     for (let email of emailList) {
+      console.log("➡️ Sending to:", email);
       await transporter.sendMail({
-        from: "nurulshifaak@gmail.com",
+        from: gmailUser,
         to: email,
-        subject: "Email from bulkmailer app",
+        subject: "Email from Bulkmailer App",
         text: msg,
       });
       console.log("✅ Sent to:", email);
@@ -157,7 +164,9 @@ app.post("/sendemail", async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     console.error("❌ Email send failed:", err);
-    res.status(500).json({ success: false, error: err.message });
+    res
+      .status(500)
+      .json({ success: false, error: err.message, stack: err.stack });
   }
 });
 
