@@ -83,6 +83,12 @@
 // const PORT = process.env.PORT || 4001;
 // app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
+
+
+
+// ------------------------
+//  Import dependencies
+// ------------------------
 const express = require("express");
 const cors = require("cors");
 const nodemailer = require("nodemailer");
@@ -91,7 +97,9 @@ const mongoose = require("mongoose");
 const app = express();
 app.use(express.json());
 
-// Allow only your frontend
+// ------------------------
+//  CORS – allow your frontend only
+// ------------------------
 app.use(
   cors({
     origin: "https://stuffboxfrontend.vercel.app",
@@ -99,70 +107,86 @@ app.use(
   })
 );
 
-// ✅ Connect MongoDB
+// ------------------------
+//  MongoDB Connection
+// ------------------------
 mongoose
   .connect(
-    "mongodb+srv://shifaxoxo24_db_user:6QIadZxLOMv74MAU@cluster0.qgggsmz.mongodb.net/passkey?retryWrites=true&w=majority&appName=Cluster0"
+    // replace with your own Mongo URI or keep as is if already valid
+    "mongodb+srv://<username>:<password>@cluster0.qgggsmz.mongodb.net/passkey?retryWrites=true&w=majority"
   )
-  .then(() => console.log("✅ DB connected"))
-  .catch(() => console.log("❌ DB connection failed"));
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch((err) => console.error("❌ DB connection failed:", err));
 
-// ✅ Schema & Model
+// ------------------------
+//  Schema & Model
+// ------------------------
 const credentialSchema = new mongoose.Schema(
   {
-    user: String,
-    pass: String,
+    user: String, // Gmail address
+    pass: String, // Gmail App Password
   },
   { collection: "bulkmail" }
 );
 
 const Credential = mongoose.model("Credential", credentialSchema);
 
-// ✅ Root check
+// ------------------------
+//  Health Check Route
+// ------------------------
 app.get("/", (req, res) => {
   res.send("Backend is running 🚀");
 });
 
-// ✅ Send Email API
+// ------------------------
+//  Send Email Route
+// ------------------------
 app.post("/sendemail", async (req, res) => {
   try {
     const { msg, emailList } = req.body;
+
     if (!msg || !emailList || !Array.isArray(emailList)) {
-      return res.json({ success: false, error: "Invalid input" });
+      return res
+        .status(400)
+        .json({ success: false, error: "Invalid input format" });
     }
 
-    // Get Gmail credentials from DB
+    // Fetch first Gmail credential document
     const creds = await Credential.findOne();
     if (!creds) {
-      return res.json({ success: false, error: "No credentials found" });
+      return res
+        .status(500)
+        .json({ success: false, error: "No email credentials found" });
     }
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
         user: creds.user,
-        pass: creds.pass, // Use Gmail App Password if 2FA enabled
+        pass: creds.pass, // Gmail App Password recommended
       },
     });
 
-    // Send emails one by one
-    for (let i = 0; i < emailList.length; i++) {
+    // Send each email sequentially (can be optimized with Promise.all)
+    for (const recipient of emailList) {
       await transporter.sendMail({
         from: creds.user,
-        to: emailList[i],
+        to: recipient,
         subject: "Email from Bulkmailer App",
         text: msg,
       });
-      console.log(`📨 Sent to ${emailList[i]}`);
+      console.log(`📨 Sent to ${recipient}`);
     }
 
-    res.json({ success: true });
+    res.json({ success: true, sent: emailList.length });
   } catch (err) {
     console.error("❌ Error sending email:", err);
-    res.json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// ✅ Start Server
-const PORT = process.env.PORT || 4001;
+// ------------------------
+//  Start Server
+// ------------------------
+const PORT = process.env.PORT || 4001; // Render provides PORT
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
