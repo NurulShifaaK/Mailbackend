@@ -86,9 +86,7 @@
 
 
 
-// ------------------------
-//  Import dependencies
-// ------------------------
+
 const express = require("express");
 const cors = require("cors");
 const nodemailer = require("nodemailer");
@@ -97,12 +95,10 @@ const mongoose = require("mongoose");
 const app = express();
 app.use(express.json());
 
-// ------------------------
-//  CORS – allow your frontend only
-// ------------------------
+
 app.use(
   cors({
-    origin: "https://stuffboxfrontend.vercel.app",
+    origin: "https://stuffboxfrontend.vercel.app/home",
     methods: ["GET", "POST"],
   })
 );
